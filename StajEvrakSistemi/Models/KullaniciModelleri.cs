@@ -4,6 +4,7 @@ public abstract class Kullanici
 {
     public int Id { get; set; }
     public string KullaniciAdi { get; set; } = string.Empty;
+    public string AdSoyad { get; set; } = string.Empty;
     
     private string _sifreHash = string.Empty;
     public string SifreHash 
@@ -35,7 +36,16 @@ public class StajBasvurusu
 {
     public int Id { get; set; }
     public string OgrenciNo { get; set; } = string.Empty;
+    public string AdSoyad { get; set; } = string.Empty;
+    public string TcKimlik { get; set; } = string.Empty;
+    public string Telefon { get; set; } = string.Empty;
+    public string Eposta { get; set; } = string.Empty;
+    public string Adres { get; set; } = string.Empty;
+    public string BaslangicTarihi { get; set; } = string.Empty;
+    public string BitisTarihi { get; set; } = string.Empty;
+    public int StajGunSayisi { get; set; }
+    public string DosyaAdi { get; set; } = string.Empty;
+    public string GoogleFormUrl { get; set; } = string.Empty;
     public string Statu { get; set; } = "Bekliyor";
-    public DateTime BasvuruTarihi { get; set; } = DateTime.Now;
     public string HataMesaji { get; set; } = string.Empty;
 }
