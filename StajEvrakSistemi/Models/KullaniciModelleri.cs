@@ -24,3 +24,18 @@ public class Ogrenci : Kullanici
     public Ogrenci() { Rol = "Ogrenci"; }
     public override string AnaSayfaGetir() => "/Ogrenci/Index";
 }
+
+public class Admin : Kullanici
+{
+    public Admin() { Rol = "Admin"; }
+    public override string AnaSayfaGetir() => "/Admin/Index";
+}
+
+public class StajBasvurusu
+{
+    public int Id { get; set; }
+    public string OgrenciNo { get; set; } = string.Empty;
+    public string Statu { get; set; } = "Bekliyor";
+    public DateTime BasvuruTarihi { get; set; } = DateTime.Now;
+    public string HataMesaji { get; set; } = string.Empty;
+}
