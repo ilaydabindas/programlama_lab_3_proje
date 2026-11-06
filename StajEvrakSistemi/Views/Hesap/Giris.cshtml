@@ -1,0 +1,23 @@
+<div class="container mt-5" style="max-width: 420px;">
+    <div class="card p-4 shadow-sm">
+        <h3 class="text-center mb-3">Staj Evrak Sistemi Giriş</h3>
+        @if(TempData["Mesaj"] != null) { <div class="alert alert-success">@TempData["Mesaj"]</div> }
+        @if(ViewBag.Hata != null) { <div class="alert alert-danger">@ViewBag.Hata</div> }
+        <form method="post" action="/Hesap/Giris">
+            <div class="mb-3">
+                <label class="form-label">Öğrenci No veya Kullanıcı Adı</label>
+                <input type="text" name="kullaniciAdi" class="form-control" placeholder="Örn: 220202001 veya admin" required />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Şifre</label>
+                <input type="password" name="sifre" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+        </form>
+        <hr />
+        <div class="text-center">
+            <span>Hesabınız yok mu?</span>
+            <a href="/Hesap/KayitOl" class="btn btn-outline-secondary btn-sm ms-2">Öğrenci Kayıt Ol</a>
+        </div>
+    </div>
+</div>
