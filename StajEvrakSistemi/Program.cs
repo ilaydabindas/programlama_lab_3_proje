@@ -1,29 +1,38 @@
+using StajEvrakSistemi.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Controller ve View desteği
 builder.Services.AddControllersWithViews();
 
+// Oturum (Session) yönetimi
+builder.Services.AddSession(options => {
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
+
 var app = builder.Build();
+
+// Veritabanı tablolarını ve varsayılan kullanıcıları başlatan satır:
+VeritabaniServisi.Baslat();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
 
+// Session yetkilendirmeden önce çalışmalıdır
+app.UseSession();
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
+    name: "default",
+    pattern: "{controller=Hesap}/{action=Giris}/{id?}");
 
 app.Run();
