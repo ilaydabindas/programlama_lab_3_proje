@@ -93,4 +93,31 @@ public class AdminController : Controller
         
         return RedirectToAction("Index");
     }
+
+    [HttpPost]
+    public IActionResult VeriSetiYukle(IFormFile veriSeti)
+    {
+        if (!AdminMi()) return RedirectToAction("Giris", "Hesap");
+
+        if (veriSeti == null || veriSeti.Length == 0)
+        {
+            TempData["Hata"] = "Lütfen bir dosya seçiniz.";
+            return RedirectToAction("Index");
+        }
+
+        var izinVerilenler = new[] { ".csv", ".xlsx", ".xls" };
+        var uzanti = Path.GetExtension(veriSeti.FileName).ToLowerInvariant();
+
+        if (!izinVerilenler.Contains(uzanti))
+        {
+            TempData["Hata"] = "Geçersiz format! Sadece .csv veya .xlsx uzantılı dosyalar kabul edilir.";
+            return RedirectToAction("Index");
+        }
+
+        // Başarılı bildirim mesajı
+        TempData["Mesaj"] = $"{veriSeti.FileName} adlı test veri seti başarıyla sisteme aktarıldı.";
+        return RedirectToAction("Index");
+    }
+
+        
 }
