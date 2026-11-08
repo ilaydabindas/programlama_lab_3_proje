@@ -42,7 +42,7 @@ public class OgrenciController : Controller
     }
 
     [HttpPost]
-    public IActionResult EvrakYukle(string adSoyad, IFormFile evrakBelgesi)
+    public async Task<IActionResult> EvrakYukle(string adSoyad, IFormFile evrakBelgesi)
     {
         if (!OgrenciMi()) return RedirectToAction("Giris", "Hesap");
 
@@ -63,7 +63,23 @@ public class OgrenciController : Controller
             return RedirectToAction("Index");
         }
 
-        // Başvuruyu veritabanına 'Bekliyor' statüsüyle kaydet
+        // 1. Klasör yoksa oluştur (wwwroot/uploads)
+        var klasorYolu = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+        if (!Directory.Exists(klasorYolu))
+        {
+            Directory.CreateDirectory(klasorYolu);
+        }
+
+        // 2. Benzersiz dosya adı oluştur ve dosyayı fiziksel olarak kaydet
+        var benzersizDosyaAdi = $"{ogrenciNo}_{Guid.NewGuid():N}.pdf";
+        var tamDosyaYolu = Path.Combine(klasorYolu, benzersizDosyaAdi);
+
+        using (var stream = new FileStream(tamDosyaYolu, FileMode.Create))
+        {
+            await evrakBelgesi.CopyToAsync(stream);
+        }
+
+        // 3. Başvuruyu veritabanına 'Bekliyor' statüsüyle kaydet
         using (var baglanti = VeritabaniServisi.BaglantiGetir())
         {
             baglanti.Open();
@@ -78,4 +94,5 @@ public class OgrenciController : Controller
         TempData["Mesaj"] = "Staj evrakınız başarıyla sisteme yüklendi ve onaya gönderildi.";
         return RedirectToAction("Index");
     }
+
 }
