@@ -118,6 +118,32 @@ public class AdminController : Controller
         TempData["Mesaj"] = $"{veriSeti.FileName} adlı test veri seti başarıyla sisteme aktarıldı.";
         return RedirectToAction("Index");
     }
+    [HttpGet]
+    public IActionResult EvrakIndir(string ogrenciNo)
+    {
+        // Güvenlik: Sadece Admin indirebilir
+        if (HttpContext.Session.GetString("Rol") != "Admin") return RedirectToAction("Giris", "Hesap");
+
+        var klasorYolu = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+        if (Directory.Exists(klasorYolu))
+        {
+            // Klasörde, bu öğrenci numarasıyla başlayan PDF'i bul
+            var dosyalar = Directory.GetFiles(klasorYolu, $"{ogrenciNo}_*.pdf");
+            
+            if (dosyalar.Length > 0)
+            {
+                // En son yüklenen dosyayı al
+                var dosyaYolu = dosyalar[dosyalar.Length - 1]; 
+                
+                // PDF'i tarayıcıda yeni sekmede açması için gönderiyoruz
+                return PhysicalFile(dosyaYolu, "application/pdf");
+            }
+        }
+
+        // Eğer dosya bulunamazsa hata mesajıyla geri dön
+        TempData["Hata"] = "Bu öğrenciye ait yüklenmiş fiziksel bir staj evrakı bulunamadı.";
+        return RedirectToAction("Index");
+    }
 
         
 }
