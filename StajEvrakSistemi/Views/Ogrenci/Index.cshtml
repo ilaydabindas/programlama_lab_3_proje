@@ -33,10 +33,33 @@
                     {
                         <span class="badge bg-success fs-6">Onaylandı</span>
                     }
-                    else if (Model.Statu == "Reddedildi")
-                    {
-                        <span class="badge bg-danger fs-6">Reddedildi</span>
-                    }
+                    @if (Model.Statu == "Reddedildi")
+            {
+                <div class="alert alert-danger mt-4 border-danger">
+                    <h6 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Başvurunuz Reddedildi</h6>
+                    <p class="mb-0">Staj evrakınızda eksiklik veya hata tespit edilmiştir. Lütfen evrakınızı düzenleyerek aşağıdan tekrar yükleyiniz.</p>
+                </div>
+
+                <!-- Reddedilen Öğrenci İçin Tekrar Yükleme Formu -->
+                <div class="card shadow-sm border-0 mt-4">
+                    <div class="card-header bg-danger text-white py-2">
+                        <h6 class="mb-0">Yeni Evrak Yükle</h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <form method="post" action="/Ogrenci/EvrakYukle" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Ad Soyad</label>
+                                <input type="text" name="adSoyad" class="form-control" value="@Model.AdSoyad" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Yeni Staj Belgesi (PDF)</label>
+                                <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf" required />
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">Güncel Evrakı Gönder</button>
+                        </form>
+                    </div>
+                </div>
+            }
                     else
                     {
                         <span class="badge bg-warning text-dark fs-6">Bekliyor</span>

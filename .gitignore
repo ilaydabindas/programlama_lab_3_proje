@@ -9,3 +9,4 @@ riderModule.iml
 *.db-wal
 .idea/
 *.sln.iml
+**/wwwroot/uploads/
