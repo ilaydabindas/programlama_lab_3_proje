@@ -79,20 +79,37 @@ public class OgrenciController : Controller
             await evrakBelgesi.CopyToAsync(stream);
         }
 
-        // 3. Başvuruyu veritabanına 'Bekliyor' statüsüyle kaydet
+        // 3. Başvuruyu veritabanına kaydet veya güncelle
         using (var baglanti = VeritabaniServisi.BaglantiGetir())
         {
             baglanti.Open();
-            var komut = new SqliteCommand(
-                "INSERT INTO Basvurular (OgrenciNo, AdSoyad, Statu) VALUES (@no, @ad, 'Bekliyor')", 
-                baglanti);
-            komut.Parameters.AddWithValue("@no", ogrenciNo);
-            komut.Parameters.AddWithValue("@ad", string.IsNullOrWhiteSpace(adSoyad) ? "Belirtilmemiş" : adSoyad);
-            komut.ExecuteNonQuery();
+            
+            // Öğrencinin daha önceden kaydı var mı kontrol et
+            var kontrolKomut = new SqliteCommand("SELECT COUNT(*) FROM Basvurular WHERE OgrenciNo=@no", baglanti);
+            kontrolKomut.Parameters.AddWithValue("@no", ogrenciNo);
+            long kayitSayisi = Convert.ToInt64(kontrolKomut.ExecuteScalar());
+
+            if (kayitSayisi > 0)
+            {
+                // Kayıt varsa durumu güncelleyip tekrar 'Bekliyor'a al (UPDATE)
+                var guncelleKomut = new SqliteCommand(
+                    "UPDATE Basvurular SET AdSoyad=@ad, Statu='Bekliyor' WHERE OgrenciNo=@no", baglanti);
+                guncelleKomut.Parameters.AddWithValue("@no", ogrenciNo);
+                guncelleKomut.Parameters.AddWithValue("@ad", string.IsNullOrWhiteSpace(adSoyad) ? "Belirtilmemiş" : adSoyad);
+                guncelleKomut.ExecuteNonQuery();
+            }
+            else
+            {
+                // İlk defa geliyorsa yeni ekle (INSERT)
+                var ekleKomut = new SqliteCommand(
+                    "INSERT INTO Basvurular (OgrenciNo, AdSoyad, Statu) VALUES (@no, @ad, 'Bekliyor')", baglanti);
+                ekleKomut.Parameters.AddWithValue("@no", ogrenciNo);
+                ekleKomut.Parameters.AddWithValue("@ad", string.IsNullOrWhiteSpace(adSoyad) ? "Belirtilmemiş" : adSoyad);
+                ekleKomut.ExecuteNonQuery();
+            }
         }
 
         TempData["Mesaj"] = "Staj evrakınız başarıyla sisteme yüklendi ve onaya gönderildi.";
         return RedirectToAction("Index");
     }
-
 }
