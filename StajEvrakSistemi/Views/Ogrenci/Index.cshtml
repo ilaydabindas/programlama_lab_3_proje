@@ -1,0 +1,76 @@
+@model StajEvrakSistemi.Models.StajBasvurusu
+
+<div class="container mt-5" style="max-width: 750px;">
+    <!-- Başarı veya Hata Bildirimleri -->
+    @if (TempData["Mesaj"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["Mesaj"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Hata"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["Hata"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model != null)
+    {
+        <!-- Öğrenci daha önce başvuru yaptıysa durum kartı gösterilir -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0">Staj Başvuru Durumunuz</h5>
+            </div>
+            <div class="card-body p-4">
+                <p><strong>Öğrenci Numarası:</strong> @Model.OgrenciNo</p>
+                <p><strong>Ad Soyad:</strong> @Model.AdSoyad</p>
+                <p class="d-flex align-items-center">
+                    <strong class="me-2">Başvuru Durumu:</strong>
+                    @if (Model.Statu == "Onaylandı")
+                    {
+                        <span class="badge bg-success fs-6">Onaylandı</span>
+                    }
+                    else if (Model.Statu == "Reddedildi")
+                    {
+                        <span class="badge bg-danger fs-6">Reddedildi</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark fs-6">Bekliyor</span>
+                    }
+                </p>
+                <div class="alert alert-info mt-3 mb-0">
+                    Başvurunuz komisyon tarafından incelenmektedir. Durum güncellendiğinde bu ekrandan takip edebilirsiniz.
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Başvurusu bulunmayan öğrenciye gösterilen evrak yükleme formu -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="mb-0">Staj Evrakı Yükleme Formu</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" action="/Ogrenci/EvrakYukle" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ad Soyad</label>
+                        <input type="text" name="adSoyad" class="form-control" placeholder="Adınızı ve soyadınızı giriniz" required />
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Staj Başvuru Belgesi (Yalnızca .PDF)</label>
+                        <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf" required />
+                        <div class="form-text">Lütfen imzalı staj formunuzu tek bir PDF dosyası olarak yükleyin.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2">Başvuruyu ve Evrakı Gönder</button>
+                </form>
+            </div>
+        </div>
+    }
+</div>
