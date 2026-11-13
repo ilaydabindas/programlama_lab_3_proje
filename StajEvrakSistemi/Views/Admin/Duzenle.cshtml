@@ -19,6 +19,15 @@
                     <option value="Reddedildi" selected="@(Model.Statu == "Reddedildi")">Reddedildi</option>
                 </select>
             </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Yüklenen Staj Evrakı</label>
+                <div class="d-grid">
+                    <a href="/Admin/EvrakIndir?ogrenciNo=@Model.OgrenciNo" target="_blank" class="btn btn-outline-info btn-lg">
+                        📄 Evrakı Görüntüle / İndir
+                    </a>
+                </div>
+                <div class="form-text mt-2">Evrak yeni bir sekmede PDF olarak açılacaktır. İnceledikten sonra aşağıdan onay/red işlemini yapabilirsiniz.</div>
+            </div>
             
             <div class="d-flex justify-content-between">
                 <a href="/Admin/Index" class="btn btn-secondary">İptal</a>
