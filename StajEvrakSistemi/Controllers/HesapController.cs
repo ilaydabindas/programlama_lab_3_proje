@@ -16,6 +16,7 @@ public class HesapController : Controller
         using var baglanti = VeritabaniServisi.BaglantiGetir();
         baglanti.Open();
 
+        // Kilit kontrolü
         var kilitKomut = new SqliteCommand("SELECT HesapKilitliMi FROM Kullanicilar WHERE KullaniciAdi=@k", baglanti);
         kilitKomut.Parameters.AddWithValue("@k", kullaniciAdi);
         var kilit = kilitKomut.ExecuteScalar();
@@ -26,6 +27,7 @@ public class HesapController : Controller
             return View();
         }
 
+        // Doğru şifre ile giriş kontrolü
         var komut = new SqliteCommand("SELECT Rol FROM Kullanicilar WHERE KullaniciAdi=@k AND SifreHash=@s", baglanti);
         komut.Parameters.AddWithValue("@k", kullaniciAdi);
         komut.Parameters.AddWithValue("@s", hashliSifre);
@@ -33,6 +35,7 @@ public class HesapController : Controller
 
         if (rol != null)
         {
+            // Giriş başarılıysa hatalı giriş sayacını 0'a çek
             var sifirla = new SqliteCommand("UPDATE Kullanicilar SET HataliGirisSayisi = 0 WHERE KullaniciAdi=@k", baglanti);
             sifirla.Parameters.AddWithValue("@k", kullaniciAdi);
             sifirla.ExecuteNonQuery();
@@ -42,14 +45,40 @@ public class HesapController : Controller
             return rol == "Admin" ? RedirectToAction("Index", "Admin") : RedirectToAction("Index", "Ogrenci");
         }
         
+        // Giriş hatalıysa (Şifre yanlış veya kullanıcı yok.)
         var hataArtir = new SqliteCommand(@"
             UPDATE Kullanicilar SET HataliGirisSayisi = HataliGirisSayisi + 1, 
             HesapKilitliMi = CASE WHEN HataliGirisSayisi + 1 >= 5 THEN 1 ELSE 0 END 
             WHERE KullaniciAdi=@k", baglanti);
         hataArtir.Parameters.AddWithValue("@k", kullaniciAdi);
-        hataArtir.ExecuteNonQuery();
+        
+        // Etkilenen satır sayısını alıyoruz (Kullanıcı veritabanında varsa 1 döner)
+        int etkilenenSatir = hataArtir.ExecuteNonQuery();
 
-        ViewBag.Hata = "Kullanıcı adı veya şifre hatalı! (5 hatalı denemede hesap kilitlenir)";
+        if (etkilenenSatir > 0)
+        {
+            // Kullanıcı var ama şifreyi yanlış girdiyse güncel hata sayısını çekelim
+            var sayacKomut = new SqliteCommand("SELECT HataliGirisSayisi FROM Kullanicilar WHERE KullaniciAdi=@k", baglanti);
+            sayacKomut.Parameters.AddWithValue("@k", kullaniciAdi);
+            int guncelHataSayisi = Convert.ToInt32(sayacKomut.ExecuteScalar());
+
+            int kalanHak = 5 - guncelHataSayisi;
+
+            if (kalanHak > 0)
+            {
+                ViewBag.Hata = $"Şifre hatalı! Kalan deneme hakkınız: {kalanHak}";
+            }
+            else
+            {
+                ViewBag.Hata = "Art arda 5 hatalı giriş yaptınız. Hesabınız güvenlik amacıyla kilitlenmiştir!";
+            }
+        }
+        else
+        {
+            // Veritabanında öyle bir kullanıcı adı hiç yoksa
+            ViewBag.Hata = "Kullanıcı adı veya şifre hatalı!";
+        }
+
         return View();
     }
 
