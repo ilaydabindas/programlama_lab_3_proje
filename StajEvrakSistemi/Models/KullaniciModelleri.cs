@@ -1,8 +1,19 @@
 namespace StajEvrakSistemi.Models;
 
-public abstract class Kullanici
+
+public abstract class TemelKayit
 {
+  
     public int Id { get; set; }
+   
+    public DateTime OlusturulmaTarihi { get; protected set; } = DateTime.Now;
+
+    public abstract string OzetBilgiGetir();
+}
+
+
+public abstract class Kullanici : TemelKayit
+{
     public string KullaniciAdi { get; set; } = string.Empty;
     public string AdSoyad { get; set; } = string.Empty;
     
@@ -17,7 +28,14 @@ public abstract class Kullanici
     public bool HesapKilitliMi { get; set; } = false;
     public string Rol { get; set; } = string.Empty;
 
+
     public abstract string AnaSayfaGetir();
+
+  
+    public override string OzetBilgiGetir()
+    {
+        return $"Kullanıcı: {AdSoyad} (Rol: {Rol})";
+    }
 }
 
 public class Ogrenci : Kullanici
@@ -32,9 +50,8 @@ public class Admin : Kullanici
     public override string AnaSayfaGetir() => "/Admin/Index";
 }
 
-public class StajBasvurusu
+public class StajBasvurusu : TemelKayit
 {
-    public int Id { get; set; }
     public string OgrenciNo { get; set; } = string.Empty;
     public string AdSoyad { get; set; } = string.Empty;
     public string TcKimlik { get; set; } = string.Empty;
@@ -55,6 +72,12 @@ public class StajBasvurusu
     public int StajGunSayisi { get; set; }
     public string DosyaAdi { get; set; } = string.Empty;
     public string GoogleFormUrl { get; set; } = string.Empty;
-    public string Statu { get; set; } = "Bekliyor";
+    
+    public string Statu { get; set; } = "İnceleniyor"; 
     public string HataMesaji { get; set; } = string.Empty;
+
+    public override string OzetBilgiGetir()
+    {
+        return $"Başvuru - Öğrenci No: {OgrenciNo} | Statü: {Statu}";
+    }
 }
