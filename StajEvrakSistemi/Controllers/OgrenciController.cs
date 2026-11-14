@@ -67,6 +67,24 @@ public class OgrenciController : Controller
     public IActionResult EvrakYukle()
     {
         if (!OgrenciMi()) return RedirectToAction("Giris", "Hesap");
+
+        var ogrenciNo = HttpContext.Session.GetString("KullaniciAdi");
+
+        // GÜVENLİK: Öğrencinin başvurusu Tamamlandı ise sayfaya girmesini engelle
+        using (var baglanti = VeritabaniServisi.BaglantiGetir())
+        {
+            baglanti.Open();
+            var komut = new SqliteCommand("SELECT Statu FROM Basvurular WHERE OgrenciNo=@no", baglanti);
+            komut.Parameters.AddWithValue("@no", ogrenciNo);
+            var statu = komut.ExecuteScalar()?.ToString();
+
+            if (statu == "Tamamlandı")
+            {
+                TempData["Hata"] = "Başvurunuz 'Tamamlandı' statüsüne geçtiği için yeni evrak yükleyemez veya mevcut bilgilerinizde değişiklik yapamazsınız.";
+                return RedirectToAction("Index");
+            }
+        }
+
         return View();
     }
 
@@ -119,12 +137,19 @@ public class OgrenciController : Controller
         {
             baglanti.Open();
             
-            // Öğrencinin daha önceden kaydı var mı kontrol et
-            var kontrolKomut = new SqliteCommand("SELECT COUNT(*) FROM Basvurular WHERE OgrenciNo=@no", baglanti);
+            //  Öğrencinin mevcut durumunu kontrol et
+            var kontrolKomut = new SqliteCommand("SELECT Statu FROM Basvurular WHERE OgrenciNo=@no", baglanti);
             kontrolKomut.Parameters.AddWithValue("@no", ogrenciNo);
-            long kayitSayisi = Convert.ToInt64(kontrolKomut.ExecuteScalar());
+            var mevcutStatu = kontrolKomut.ExecuteScalar()?.ToString();
 
-            if (kayitSayisi > 0)
+            if (mevcutStatu == "Tamamlandı")
+            {
+                // Eğer form bir şekilde gönderildiyse bile Tamamlandıysa kaydetmeyi engelle
+                TempData["Hata"] = "Başvurunuz 'Tamamlandı' statüsünde olduğu için güncelleme işlemi reddedildi.";
+                return RedirectToAction("Index");
+            }
+
+            if (mevcutStatu != null)
             {
                 // Kayıt varsa durumu güncelleyip tekrar 'İnceleniyor'a al ve tüm alanları güncelle
                 var guncelleKomut = new SqliteCommand(@"
