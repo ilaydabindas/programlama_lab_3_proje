@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using StajEvrakSistemi.Data;
 using StajEvrakSistemi.Models;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace StajEvrakSistemi.Controllers;
 
@@ -99,7 +101,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
-    public IActionResult VeriSetiYukle(IFormFile veriSeti)
+    public async Task<IActionResult> VeriSetiYukle(IFormFile veriSeti)
     {
         if (!AdminMi()) return RedirectToAction("Giris", "Hesap");
 
@@ -109,17 +111,59 @@ public class AdminController : Controller
             return RedirectToAction("Index");
         }
 
-        var izinVerilenler = new[] { ".csv", ".xlsx", ".xls" };
         var uzanti = Path.GetExtension(veriSeti.FileName).ToLowerInvariant();
-
-        if (!izinVerilenler.Contains(uzanti))
+        if (uzanti != ".csv")
         {
-            TempData["Hata"] = "Geçersiz format! Sadece .csv veya .xlsx uzantılı dosyalar kabul edilir.";
+            TempData["Hata"] = "Test veri seti için lütfen sisteme sadece .csv formatında dosya yükleyiniz.";
             return RedirectToAction("Index");
         }
 
-        // Yüklenen Excel/CSV dosyasının içindeki verileri okuyup veritabanına kaydetme kodları eklenecek.
-        TempData["Mesaj"] = $"{veriSeti.FileName} adlı test veri seti başarıyla sisteme aktarıldı.";
+        int satirSayisi = 0;
+        
+        // CSV dosyasını okuyup veritabanına yazma işlemi
+        using (var stream = new StreamReader(veriSeti.OpenReadStream()))
+        {
+            using var baglanti = VeritabaniServisi.BaglantiGetir();
+            baglanti.Open();
+            
+            // Eğer yoksa test verileri için arka planda otomatik tablo oluşturur
+            var tabloKomut = new SqliteCommand(@"
+                CREATE TABLE IF NOT EXISTS TestVeriSeti (
+                    OgrenciNo TEXT PRIMARY KEY,
+                    AdSoyad TEXT,
+                    TcKimlik TEXT,
+                    DogumTarihi TEXT
+                )", baglanti);
+            tabloKomut.ExecuteNonQuery();
+
+            // CSV'nin ilk satırını (Öğrenci No, Ad Soyad, TC gibi başlıkları) atla
+            await stream.ReadLineAsync();
+
+            while (!stream.EndOfStream)
+            {
+                var satir = await stream.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(satir)) continue;
+
+                var sutunlar = satir.Split(','); // CSV dosyaları verileri virgülle ayırır
+                if (sutunlar.Length >= 3)
+                {
+                    // Satırdaki verileri veritabanına kaydet
+                    var ekleKomut = new SqliteCommand(@"
+                        INSERT OR REPLACE INTO TestVeriSeti (OgrenciNo, AdSoyad, TcKimlik, DogumTarihi) 
+                        VALUES (@no, @ad, @tc, @dogum)", baglanti);
+                    
+                    ekleKomut.Parameters.AddWithValue("@no", sutunlar[0].Trim());
+                    ekleKomut.Parameters.AddWithValue("@ad", sutunlar[1].Trim());
+                    ekleKomut.Parameters.AddWithValue("@tc", sutunlar[2].Trim());
+                    ekleKomut.Parameters.AddWithValue("@dogum", sutunlar.Length > 3 ? sutunlar[3].Trim() : "");
+                    
+                    ekleKomut.ExecuteNonQuery();
+                    satirSayisi++;
+                }
+            }
+        }
+
+        TempData["Mesaj"] = $"{veriSeti.FileName} adlı veri seti başarıyla okundu ve {satirSayisi} öğrenci bilgisi sisteme aktarıldı.";
         return RedirectToAction("Index");
     }
 
