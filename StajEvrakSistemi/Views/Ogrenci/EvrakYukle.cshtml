@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Staj Evrakı Yükle";
+}
+
+<div class="container mt-4" style="max-width: 800px;">
+    <div class="card shadow-sm border-primary">
+        <div class="card-header bg-primary text-white text-center">
+            <h4 class="mb-0">Ek-16 Staj Bilgi ve Evrak Formu</h4>
+        </div>
+        <div class="card-body p-4">
+            
+            <form action="/Ogrenci/EvrakYukle" method="post" enctype="multipart/form-data">
+                <!-- Temel Kimlik Bilgileri -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Adınız Soyadınız</label>
+                        <input type="text" name="adSoyad" class="form-control" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">TC / Yabancı Kimlik No</label>
+                        <input type="text" name="tcKimlik" class="form-control" required maxlength="11" />
+                    </div>
+                </div>
+
+                <!-- Demografik ve Akademik Bilgiler -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Uyruk</label>
+                        <select name="uyruk" class="form-select" required>
+                            <option value="TC">T.C.</option>
+                            <option value="Yabanci">Yabancı Uyruklu</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Doğum Tarihi</label>
+                        <input type="date" name="dogumTarihi" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Okuduğu Bölüm</label>
+                        <input type="text" name="okuduguBolum" class="form-control" value="Yazılım Mühendisliği" required />
+                    </div>
+                </div>
+
+                <!-- Staj ve Sağlık Bilgileri -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Evrak Teslim Yılı</label>
+                        <input type="text" name="teslimYili" class="form-control" placeholder="Örn: 2025-2026 Bahar" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Önceki Staj Gün Sayısı</label>
+                        <input type="number" name="oncekiStajGunSayisi" class="form-control" value="0" min="0" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Sağlık Yardımı Statüsü</label>
+                        <select name="saglikYardimiStatusu" class="form-select" required>
+                            <option value="Aileden">Aileden Alıyorum</option>
+                            <option value="Kendim">Kendim Alıyorum</option>
+                            <option value="Yok">Yok</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- İletişim Bilgileri -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">Telefon Numarası</label>
+                        <input type="text" name="telefon" class="form-control" placeholder="+90 5XX XXX XX XX" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">E-Posta Adresi</label>
+                        <input type="email" name="eposta" class="form-control" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">İkametgah (Açık Adres)</label>
+                    <textarea name="adres" class="form-control" rows="2" placeholder="Mahalle, Cadde, Sokak, No, İlçe/İl" required></textarea>
+                </div>
+
+                <!-- Staj Tarihleri ve Mühendis Kuralı -->
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Staj Başlangıç</label>
+                        <input type="date" name="baslangicTarihi" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Staj Bitiş</label>
+                        <input type="date" name="bitisTarihi" class="form-control" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Mühendis Sayısı</label>
+                        <input type="number" name="muhendisSayisi" id="muhendisSayisi" class="form-control" min="1" required />
+                    </div>
+                </div>
+
+                <!-- JS ile Açılacak Gizli Uyarı Kutusu -->
+                <div class="mb-3 p-3 bg-warning text-dark rounded d-none" id="muhendisUyarisi">
+                    <label class="form-label fw-bold">Kurumdaki mühendis sayısı 5'in altındadır. Lütfen mühendisin mezun olduğu bölümü giriniz:</label>
+                    <input type="text" name="muhendisBolumu" id="muhendisBolumu" class="form-control" placeholder="Örn: Bilgisayar Mühendisliği" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Staj Yapılacak Günler</label>
+                    <input type="text" name="stajGunleri" class="form-control" placeholder="Örn: Pazartesi, Salı, Çarşamba" required />
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Google Form URL</label>
+                    <input type="url" name="googleFormUrl" class="form-control" placeholder="https://forms.gle/..." required />
+                </div>
+
+                <div class="mb-4 border p-3 bg-light rounded">
+                    <label class="form-label fw-bold text-danger">Staj Evrakı (Word, PDF, JPEG, PNG)</label>
+                    <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf, .doc, .docx, .jpg, .jpeg, .png" required />
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success btn-lg">Bilgileri Kaydet ve Başvuruyu Gönder</button>
+                    <a href="/Ogrenci/Index" class="btn btn-outline-secondary">İptal</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('muhendisSayisi').addEventListener('input', function () {
+        var uyariKutusu = document.getElementById('muhendisUyarisi');
+        var bolumInput = document.getElementById('muhendisBolumu');
+        if (this.value > 0 && this.value < 5) {
+            uyariKutusu.classList.remove('d-none');
+            bolumInput.required = true;
+        } else {
+            uyariKutusu.classList.add('d-none');
+            bolumInput.required = false;
+        }
+    });
+</script>

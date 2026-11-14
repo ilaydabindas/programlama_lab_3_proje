@@ -39,10 +39,19 @@ public class StajBasvurusu
     public string AdSoyad { get; set; } = string.Empty;
     public string TcKimlik { get; set; } = string.Empty;
     public string Telefon { get; set; } = string.Empty;
+    public string Uyruk { get; set; } = string.Empty;
+    public string DogumTarihi { get; set; } = string.Empty;
+    public string OkuduguBolum { get; set; } = string.Empty;
+    public string TeslimYili { get; set; } = string.Empty;
+    public int OncekiStajGunSayisi { get; set; }
+    public string SaglikYardimiStatusu { get; set; } = string.Empty;
     public string Eposta { get; set; } = string.Empty;
     public string Adres { get; set; } = string.Empty;
     public string BaslangicTarihi { get; set; } = string.Empty;
     public string BitisTarihi { get; set; } = string.Empty;
+    public string StajGunleri { get; set; } = string.Empty;
+    public int MuhendisSayisi { get; set; }
+    public string MuhendisBolumu { get; set; } = string.Empty;
     public int StajGunSayisi { get; set; }
     public string DosyaAdi { get; set; } = string.Empty;
     public string GoogleFormUrl { get; set; } = string.Empty;

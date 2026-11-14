@@ -29,7 +29,6 @@ public class AdminController : Controller
             {
                 Id = okuyucu.GetInt32(0),
                 OgrenciNo = okuyucu.GetString(1),
-                // İsim boş bırakılmışsa DBNull hatası almamak için varsayılan değer atıyoruz
                 AdSoyad = okuyucu.IsDBNull(2) ? "Belirtilmemiş" : okuyucu.GetString(2),
                 Statu = okuyucu.GetString(3)
             });
@@ -45,7 +44,6 @@ public class AdminController : Controller
         using var baglanti = VeritabaniServisi.BaglantiGetir();
         baglanti.Open();
         
-        // Düzenlenecek başvurunun mevcut statü bilgilerini getir
         var komut = new SqliteCommand("SELECT Id, OgrenciNo, Statu FROM Basvurular WHERE Id=@id", baglanti);
         komut.Parameters.AddWithValue("@id", id);
         using var okuyucu = komut.ExecuteReader();
@@ -66,6 +64,12 @@ public class AdminController : Controller
     public IActionResult Duzenle(int id, string statu)
     {
         if (!AdminMi()) return RedirectToAction("Giris", "Hesap");
+        
+        // Onaylanan belgeler otomatik olarak Tamamlandı statüsüne geçer
+        if (statu == "Onaylandı")
+        {
+            statu = "Tamamlandı";
+        }
         
         using var baglanti = VeritabaniServisi.BaglantiGetir();
         baglanti.Open();
@@ -114,36 +118,61 @@ public class AdminController : Controller
             return RedirectToAction("Index");
         }
 
-        // Başarılı bildirim mesajı
+        // Yüklenen Excel/CSV dosyasının içindeki verileri okuyup veritabanına kaydetme kodları eklenecek.
         TempData["Mesaj"] = $"{veriSeti.FileName} adlı test veri seti başarıyla sisteme aktarıldı.";
         return RedirectToAction("Index");
     }
+
     [HttpGet]
     public IActionResult EvrakIndir(string ogrenciNo)
     {
-        // Güvenlik: Sadece Admin indirebilir
-        if (HttpContext.Session.GetString("Rol") != "Admin") return RedirectToAction("Giris", "Hesap");
+        if (!AdminMi()) return RedirectToAction("Giris", "Hesap");
 
-        var klasorYolu = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-        if (Directory.Exists(klasorYolu))
+        string dosyaAdi = string.Empty;
+
+        // 1. Öğrenci numarasına göre veritabanından kesin dosya adını bul
+        using (var baglanti = VeritabaniServisi.BaglantiGetir())
         {
-            // Klasörde, bu öğrenci numarasıyla başlayan PDF'i bul
-            var dosyalar = Directory.GetFiles(klasorYolu, $"{ogrenciNo}_*.pdf");
+            baglanti.Open();
+            var komut = new SqliteCommand("SELECT DosyaAdi FROM Basvurular WHERE OgrenciNo=@no", baglanti);
+            komut.Parameters.AddWithValue("@no", ogrenciNo);
+            var sonuc = komut.ExecuteScalar();
             
-            if (dosyalar.Length > 0)
+            if (sonuc != null && sonuc != DBNull.Value)
             {
-                // En son yüklenen dosyayı al
-                var dosyaYolu = dosyalar[dosyalar.Length - 1]; 
-                
-                // PDF'i tarayıcıda yeni sekmede açması için gönderiyoruz
-                return PhysicalFile(dosyaYolu, "application/pdf");
+                dosyaAdi = sonuc.ToString() ?? "";
             }
         }
 
-        // Eğer dosya bulunamazsa hata mesajıyla geri dön
-        TempData["Hata"] = "Bu öğrenciye ait yüklenmiş fiziksel bir staj evrakı bulunamadı.";
-        return RedirectToAction("Index");
-    }
+        if (string.IsNullOrEmpty(dosyaAdi))
+        {
+            TempData["Hata"] = "Bu öğrenciye ait sistemde kayıtlı bir evrak bulunamadı.";
+            return RedirectToAction("Index");
+        }
 
-        
+        // 2. Dosyanın fiziksel olarak var olup olmadığını kontrol et
+        var klasorYolu = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+        var tamDosyaYolu = Path.Combine(klasorYolu, dosyaAdi);
+
+        if (!System.IO.File.Exists(tamDosyaYolu))
+        {
+            TempData["Hata"] = "Evrak kaydı mevcut ancak fiziksel dosya sunucuda bulunamadı.";
+            return RedirectToAction("Index");
+        }
+
+        // 3. Dosya uzantısına göre doğru içerik tipini (MIME Type) belirle
+        var uzanti = Path.GetExtension(dosyaAdi).ToLowerInvariant();
+        string icerikTipi = uzanti switch
+        {
+            ".pdf" => "application/pdf",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            _ => "application/octet-stream"
+        };
+
+        // Dosyayı doğru formatta tarayıcıya gönder
+        return PhysicalFile(tamDosyaYolu, icerikTipi);
+    }
 }
