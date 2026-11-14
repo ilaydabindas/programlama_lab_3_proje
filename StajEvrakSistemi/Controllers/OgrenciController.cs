@@ -131,6 +131,29 @@ public class OgrenciController : Controller
         {
             await evrakBelgesi.CopyToAsync(stream);
         }
+        string belgeMetni = BelgeOkuyucu.MetinOku(tamDosyaYolu, uzanti);
+        string analizRaporu = "";
+
+        if (!string.IsNullOrEmpty(belgeMetni))
+        {
+            // Belge metninde öğrencinin girdiği kritik bilgileri arıyoruz
+            bool adEslesiyor = belgeMetni.IndexOf(adSoyad ?? "", StringComparison.OrdinalIgnoreCase) >= 0;
+            bool tcEslesiyor = !string.IsNullOrEmpty(tcKimlik) && belgeMetni.Contains(tcKimlik);
+            bool noEslesiyor = !string.IsNullOrEmpty(ogrenciNo) && belgeMetni.Contains(ogrenciNo);
+
+            if (adEslesiyor && tcEslesiyor && noEslesiyor)
+            {
+                analizRaporu = "[SİSTEM ONAYI: Yüklediğiniz evrak içeriği form bilgileriyle eşleşti. Belgeniz teslime hazır.]";
+            }
+            else
+            {
+                analizRaporu = "[DİKKAT: Yüklediğiniz evraktaki bilgiler (Ad, TC veya No) formla tam uyuşmuyor. Lütfen evrakınızı kontrol ediniz.]";
+            }
+        }
+        else if (uzanti == ".jpg" || uzanti == ".png" || uzanti == ".jpeg")
+        {
+            analizRaporu = "[BİLGİ: Görsel formatındaki belgeler sistem tarafından otomatik okunamamaktadır. Yönetici manuel inceleyecektir.]";
+        }
 
         // 3. Başvuruyu tüm detaylarıyla veritabanına kaydet veya güncelle
         using (var baglanti = VeritabaniServisi.BaglantiGetir())
@@ -213,7 +236,7 @@ public class OgrenciController : Controller
             }
         }
 
-        TempData["Mesaj"] = "Staj bilgi formunuz ve evrakınız başarıyla sisteme kaydedildi.";
+        TempData["Mesaj"] = $"Staj bilgi formunuz ve evrakınız başarıyla sisteme kaydedildi. {analizRaporu}";
         return RedirectToAction("Index");
     }
 }
