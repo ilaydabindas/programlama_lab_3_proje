@@ -11,14 +11,12 @@
                 <input type="text" class="form-control" value="@Model.OgrenciNo" disabled />
             </div>
             
-            <div class="mb-4">
-                <label class="form-label fw-bold">Evrak / Başvuru Statüsü</label>
-                <select name="statu" class="form-select">
-                    <option value="Bekliyor" selected="@(Model.Statu == "Bekliyor")">Bekliyor</option>
-                    <option value="Onaylandı" selected="@(Model.Statu == "Onaylandı")">Onaylandı</option>
-                    <option value="Reddedildi" selected="@(Model.Statu == "Reddedildi")">Reddedildi</option>
-                </select>
-            </div>
+            <select name="statu" class="form-select">
+    <option value="İnceleniyor" selected="@(Model.Statu == "İnceleniyor")">İnceleniyor</option>
+    <option value="Hatalı / Eksik" selected="@(Model.Statu == "Hatalı / Eksik")">Hatalı / Eksik</option>
+    <option value="Onaylandı" selected="@(Model.Statu == "Onaylandı" || Model.Statu == "Tamamlandı")">Onaylandı</option>
+</select>
+            
             <div class="mb-4">
                 <label class="form-label fw-bold">Yüklenen Staj Evrakı</label>
                 <div class="d-grid">
@@ -26,7 +24,7 @@
                         📄 Evrakı Görüntüle / İndir
                     </a>
                 </div>
-                <div class="form-text mt-2">Evrak yeni bir sekmede PDF olarak açılacaktır. İnceledikten sonra aşağıdan onay/red işlemini yapabilirsiniz.</div>
+                <div class="form-text mt-2">Evrak (PDF, Word veya Resim formatında) yeni bir sekmede açılacaktır. İnceledikten sonra yukarıdan onay/red işlemini yapabilirsiniz.</div>
             </div>
             
             <div class="d-flex justify-content-between">

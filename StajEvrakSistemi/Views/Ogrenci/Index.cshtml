@@ -2,7 +2,7 @@
 
 <div class="container mt-4" style="max-width: 750px;">
     
-    <!-- Üst Kısım: Sayfa Başlığı ve Admin Paneliyle Aynı Çıkış Butonu -->
+    <!-- Üst Kısım: Sayfa Başlığı ve Çıkış Butonu -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0 fw-bold text-secondary">Öğrenci Paneli</h4>
         <a href="/Hesap/Cikis" class="btn btn-danger shadow-sm">Çıkış Yap</a>
@@ -32,58 +32,90 @@
                 <h5 class="mb-0">Staj Başvuru Durumunuz</h5>
             </div>
             <div class="card-body p-4">
-                <p><strong>Öğrenci Numarası:</strong> @Model.OgrenciNo</p>
-                <p><strong>Ad Soyad:</strong> @Model.AdSoyad</p>
-                <p class="d-flex align-items-center">
-                    <strong class="me-2">Başvuru Durumu:</strong>
-                    
-                    <!-- ROZETLER: Sadece geçerli olan durum görünür -->
+                
+                <!-- Dokümana Uygun Başvuru Statüsü -->
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    <strong class="me-3 fs-5">Durum:</strong>
                     @if (Model.Statu == "Onaylandı")
                     {
-                        <span class="badge bg-success fs-6">Onaylandı</span>
+                        <span class="badge bg-success fs-6 px-3 py-2">Onaylandı</span>
                     }
-                    else if (Model.Statu == "Reddedildi")
+                    else if (Model.Statu == "Hatalı / Eksik" || Model.Statu == "Reddedildi")
                     {
-                        <span class="badge bg-danger fs-6">Reddedildi</span>
+                        <span class="badge bg-danger fs-6 px-3 py-2">Hatalı / Eksik</span>
+                    }
+                    else if (Model.Statu == "Tamamlandı")
+                    {
+                        <span class="badge bg-info text-dark fs-6 px-3 py-2">Tamamlandı</span>
                     }
                     else
                     {
-                        <span class="badge bg-warning text-dark fs-6">Bekliyor</span>
+                        <span class="badge bg-warning text-dark fs-6 px-3 py-2">@Model.Statu</span>
                     }
-                </p>
+                </div>
 
-                <!-- ALT BİLGİLENDİRMELER VE FORMLAR -->
-                @if (Model.Statu == "Bekliyor")
+                <!-- Detaylı Bilgiler (Tüm Alanlar Eklendi) -->
+                <h6 class="fw-bold mb-3 text-secondary">Başvuru Detayları</h6>
+                
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Öğrenci Numarası:</div><div class="col-sm-8">@Model.OgrenciNo</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Ad Soyad:</div><div class="col-sm-8">@Model.AdSoyad</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">TC Kimlik No:</div><div class="col-sm-8">@Model.TcKimlik</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Uyruk / Doğum Trh:</div><div class="col-sm-8">@Model.Uyruk / @Model.DogumTarihi</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Okuduğu Bölüm:</div><div class="col-sm-8">@Model.OkuduguBolum</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">İletişim:</div><div class="col-sm-8">@Model.Telefon <br/> @Model.Eposta</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Açık Adres:</div><div class="col-sm-8">@Model.Adres</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Evrak Teslim Yılı:</div><div class="col-sm-8">@Model.TeslimYili</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Önceki Staj (Gün):</div><div class="col-sm-8">@Model.OncekiStajGunSayisi</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Sağlık Yardımı:</div><div class="col-sm-8">@Model.SaglikYardimiStatusu</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Staj Tarihleri:</div><div class="col-sm-8">@Model.BaslangicTarihi - @Model.BitisTarihi</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Staj Günleri:</div><div class="col-sm-8">@Model.StajGunleri</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-sm-4 fw-bold">Mühendis Sayısı:</div>
+                    <div class="col-sm-8">
+                        @Model.MuhendisSayisi 
+                        @(Model.MuhendisSayisi < 5 && !string.IsNullOrEmpty(Model.MuhendisBolumu) ? $" ({Model.MuhendisBolumu})" : "")
+                    </div>
+                </div>
+
+
+                <!-- ALT BİLGİLENDİRMELER -->
+                @if (Model.Statu == "İnceleniyor" || Model.Statu == "Bekliyor")
                 {
-                    <div class="alert alert-info mt-3 mb-0">
+                    <div class="alert alert-info mb-0">
                         Başvurunuz komisyon tarafından incelenmektedir. Durum güncellendiğinde bu ekrandan takip edebilirsiniz.
                     </div>
                 }
-                else if (Model.Statu == "Reddedildi")
+                else if (Model.Statu == "Hatalı / Eksik" || Model.Statu == "Reddedildi")
                 {
-                    <div class="alert alert-danger mt-4 border-danger">
-                        <h6 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Başvurunuz Reddedildi</h6>
-                        <p class="mb-0">Staj evrakınızda eksiklik veya hata tespit edilmiştir. Lütfen evrakınızı düzenleyerek aşağıdan tekrar yükleyiniz.</p>
-                    </div>
-
-                    <!-- Reddedilen Öğrenci İçin Tekrar Yükleme Formu -->
-                    <div class="card shadow-sm border-0 mt-4">
-                        <div class="card-header bg-danger text-white py-2">
-                            <h6 class="mb-0">Yeni Evrak Yükle</h6>
-                        </div>
-                        <div class="card-body p-3">
-                            <form method="post" action="/Ogrenci/EvrakYukle" enctype="multipart/form-data">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Ad Soyad</label>
-                                    <input type="text" name="adSoyad" class="form-control" value="@Model.AdSoyad" required />
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Yeni Staj Belgesi (PDF)</label>
-                                    <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf" required />
-                                </div>
-                                <button type="submit" class="btn btn-danger w-100">Güncel Evrakı Gönder</button>
-                            </form>
-                        </div>
+                    <div class="alert alert-danger border-danger mb-0">
+                        <h6 class="alert-heading fw-bold">Başvurunuz Hatalı / Eksik</h6>
+                        <p class="mb-3">Staj evrakınızda eksiklik veya hata tespit edilmiştir. Lütfen bilgilerinizi ve evrakınızı güncelleyerek tekrar gönderiniz.</p>
+                        
+                        <a href="/Ogrenci/EvrakYukle" class="btn btn-danger w-100 fw-bold">Evrakları ve Bilgileri Tekrar Yükle</a>
                     </div>
                 }
             </div>
@@ -91,26 +123,15 @@
     }
     else
     {
-        <!-- Başvurusu bulunmayan öğrenciye gösterilen evrak yükleme formu -->
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-dark text-white py-3">
-                <h5 class="mb-0">Staj Evrakı Yükleme Formu</h5>
-            </div>
-            <div class="card-body p-4">
-                <form method="post" action="/Ogrenci/EvrakYukle" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Ad Soyad</label>
-                        <input type="text" name="adSoyad" class="form-control" placeholder="Adınızı ve soyadınızı giriniz" required />
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Staj Başvuru Belgesi (Yalnızca .PDF)</label>
-                        <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf" required />
-                        <div class="form-text">Lütfen imzalı staj formunuzu tek bir PDF dosyası olarak yükleyin.</div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100 py-2">Başvuruyu ve Evrakı Gönder</button>
-                </form>
+        <!-- Başvurusu bulunmayan öğrenciye gösterilen ekran -->
+        <div class="card shadow-sm border-0 mt-5">
+            <div class="card-body p-5 text-center">
+                <h5 class="text-secondary mb-4">Sistemde kayıtlı bir staj başvurunuz bulunmamaktadır.</h5>
+                <p class="text-muted mb-4">Staj sürecinizi başlatmak için Ek-16 bilgilerinizi doldurmalı ve evrakınızı yüklemelisiniz.</p>
+                
+                <a href="/Ogrenci/EvrakYukle" class="btn btn-primary btn-lg px-4 shadow">
+                    Yeni Staj Başvurusu Yap (Evrak Yükle)
+                </a>
             </div>
         </div>
     }

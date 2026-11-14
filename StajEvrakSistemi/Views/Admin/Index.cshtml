@@ -36,7 +36,7 @@
                 <button type="submit" class="btn btn-success text-nowrap">Veri Setini İçe Aktar</button>
             </form>
             <small class="text-muted mt-2 d-block">
-                * Proje dokümanında belirtilen test veri setini (.csv veya .xlsx) buradan sisteme aktarabilirsiniz.
+- Proje dokümanında belirtilen test veri setini (.csv veya .xlsx) buradan sisteme aktarabilirsiniz.
             </small>
         </div>
     </div>
@@ -59,10 +59,16 @@
                         <td class="align-middle">@item.OgrenciNo</td>
                         <td class="align-middle">@item.AdSoyad</td>
                         <td class="align-middle">
-                            <!-- Duruma göre dinamik renkli rozetler -->
-                            <span class="badge @(item.Statu == "Onaylandı" ? "bg-success" : (item.Statu == "Reddedildi" ? "bg-danger" : "bg-warning text-dark"))">
-                                @item.Statu
-                            </span>
+                            <!-- Dokümana uygun dinamik renkli rozetler -->
+                            @if (item.Statu == "Onaylandı") {
+                                <span class="badge bg-success fs-6">Onaylandı</span>
+                            } else if (item.Statu == "Hatalı / Eksik") {
+                                <span class="badge bg-danger fs-6">Hatalı / Eksik</span>
+                            } else if (item.Statu == "Tamamlandı") {
+                                <span class="badge bg-info text-dark fs-6">Tamamlandı</span>
+                            } else {
+                                <span class="badge bg-warning text-dark fs-6">@item.Statu</span>
+                            }
                         </td>
                         <td>
                             <a href="/Admin/Duzenle/@item.Id" class="btn btn-sm btn-primary">İncele/Düzenle</a>
