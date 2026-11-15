@@ -1,3 +1,5 @@
+@model StajEvrakSistemi.Models.StajBasvurusu
+
 @{
     ViewData["Title"] = "Staj Evrakı Yükle";
 }
@@ -14,11 +16,11 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Adınız Soyadınız</label>
-                        <input type="text" name="adSoyad" class="form-control" required />
+                        <input type="text" name="adSoyad" class="form-control" value="@Model?.AdSoyad" required />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">TC / Yabancı Kimlik No</label>
-                        <input type="text" name="tcKimlik" class="form-control" required maxlength="11" />
+                        <input type="text" name="tcKimlik" class="form-control" value="@Model?.TcKimlik" required maxlength="11" />
                     </div>
                 </div>
 
@@ -27,17 +29,17 @@
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Uyruk</label>
                         <select name="uyruk" class="form-select" required>
-                            <option value="TC">T.C.</option>
-                            <option value="Yabanci">Yabancı Uyruklu</option>
+                            <option value="TC" selected="@(Model?.Uyruk == "TC")">T.C.</option>
+                            <option value="Yabanci" selected="@(Model?.Uyruk == "Yabanci")">Yabancı Uyruklu</option>
                         </select>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Doğum Tarihi</label>
-                        <input type="date" name="dogumTarihi" class="form-control" required />
+                        <input type="date" name="dogumTarihi" class="form-control" value="@Model?.DogumTarihi" required />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Okuduğu Bölüm</label>
-                        <input type="text" name="okuduguBolum" class="form-control" value="Yazılım Mühendisliği" required />
+                        <input type="text" name="OkuduguBolum" class="form-control" placeholder="Bölümünüzü giriniz" value="@Model?.OkuduguBolum" required />
                     </div>
                 </div>
 
@@ -45,18 +47,18 @@
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Evrak Teslim Yılı</label>
-                        <input type="text" name="teslimYili" class="form-control" placeholder="Örn: 2025-2026 Bahar" required />
+                        <input type="text" name="teslimYili" class="form-control" placeholder="Örn: 2025-2026 Bahar" value="@Model?.TeslimYili" required />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Önceki Staj Gün Sayısı</label>
-                        <input type="number" name="oncekiStajGunSayisi" class="form-control" value="0" min="0" required />
+                        <input type="number" name="oncekiStajGunSayisi" class="form-control" value="@(Model?.OncekiStajGunSayisi ?? 0)" min="0" required />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Sağlık Yardımı Statüsü</label>
-                        <select name="saglikYardimiStatusu" class="form-select" required>
-                            <option value="Aileden">Aileden Alıyorum</option>
-                            <option value="Kendim">Kendim Alıyorum</option>
-                            <option value="Yok">Yok</option>
+                        <select name="SaglikYardimiStatusu" class="form-select" required>
+                            <option value="">Seçiniz...</option>
+                            <option value="Var" selected="@(Model?.SaglikYardimiStatusu == "Var")">Var</option>
+                            <option value="Yok" selected="@(Model?.SaglikYardimiStatusu == "Yok")">Yok</option>
                         </select>
                     </div>
                 </div>
@@ -65,54 +67,55 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Telefon Numarası</label>
-                        <input type="text" name="telefon" class="form-control" placeholder="+90 5XX XXX XX XX" required />
+                        <input type="text" name="telefon" class="form-control" placeholder="+90 5XX XXX XX XX" value="@Model?.Telefon" required />
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">E-Posta Adresi</label>
-                        <input type="email" name="eposta" class="form-control" required />
+                        <input type="email" name="eposta" class="form-control" value="@Model?.Eposta" required />
                     </div>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">İkametgah (Açık Adres)</label>
-                    <textarea name="adres" class="form-control" rows="2" placeholder="Mahalle, Cadde, Sokak, No, İlçe/İl" required></textarea>
+                    <textarea name="adres" class="form-control" rows="2" placeholder="Mahalle, Cadde, Sokak, No, İlçe/İl" required>@Model?.Adres</textarea>
                 </div>
 
                 <!-- Staj Tarihleri ve Mühendis Kuralı -->
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Staj Başlangıç</label>
-                        <input type="date" name="baslangicTarihi" class="form-control" required />
+                        <input type="date" name="baslangicTarihi" class="form-control" value="@Model?.BaslangicTarihi" required />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Staj Bitiş</label>
-                        <input type="date" name="bitisTarihi" class="form-control" required />
+                        <input type="date" name="bitisTarihi" class="form-control" value="@Model?.BitisTarihi" required />
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Mühendis Sayısı</label>
-                        <input type="number" name="muhendisSayisi" id="muhendisSayisi" class="form-control" min="1" required />
+                        <input type="number" name="muhendisSayisi" id="muhendisSayisi" class="form-control" min="1" value="@(Model?.MuhendisSayisi > 0 ? Model?.MuhendisSayisi : "")" required />
                     </div>
                 </div>
 
                 <!-- JS ile Açılacak Gizli Uyarı Kutusu -->
-                <div class="mb-3 p-3 bg-warning text-dark rounded d-none" id="muhendisUyarisi">
+                <div class="mb-3 p-3 bg-warning text-dark rounded @(Model?.MuhendisSayisi > 0 && Model?.MuhendisSayisi < 5 ? "" : "d-none")" id="muhendisUyarisi">
                     <label class="form-label fw-bold">Kurumdaki mühendis sayısı 5'in altındadır. Lütfen mühendisin mezun olduğu bölümü giriniz:</label>
-                    <input type="text" name="muhendisBolumu" id="muhendisBolumu" class="form-control" placeholder="Örn: Bilgisayar Mühendisliği" />
+                    <input type="text" name="muhendisBolumu" id="muhendisBolumu" class="form-control" placeholder="Örn: Bilgisayar Mühendisliği" value="@Model?.MuhendisBolumu" @(Model?.MuhendisSayisi > 0 && Model?.MuhendisSayisi < 5 ? "required" : "") />
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-bold">Staj Yapılacak Günler</label>
-                    <input type="text" name="stajGunleri" class="form-control" placeholder="Örn: Pazartesi, Salı, Çarşamba" required />
+                    <input type="text" name="stajGunleri" class="form-control" placeholder="Örn: Pazartesi, Salı, Çarşamba" value="@Model?.StajGunleri" required />
                 </div>
                 
                 <div class="mb-4">
                     <label class="form-label fw-bold">Google Form URL</label>
-                    <input type="url" name="googleFormUrl" class="form-control" placeholder="https://forms.gle/..." required />
+                    <input type="url" name="googleFormUrl" class="form-control" placeholder="https://forms.gle/..." value="@Model?.GoogleFormUrl" required />
                 </div>
 
                 <div class="mb-4 border p-3 bg-light rounded">
                     <label class="form-label fw-bold text-danger">Staj Evrakı (Word, PDF, JPEG, PNG)</label>
-                    <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf, .doc, .docx, .jpg, .jpeg, .png" required />
+                    <input type="file" name="evrakBelgesi" class="form-control" accept=".pdf, .doc, .docx, .jpg, .jpeg, .png" @(Model == null ? "required" : "") />
+                    <small class="text-muted">Eğer sadece form bilgilerini güncelliyorsanız ve yeni evrak yüklemeyecekseniz bu alanı boş bırakabilirsiniz.</small>
                 </div>
 
                 <div class="d-grid gap-2">
