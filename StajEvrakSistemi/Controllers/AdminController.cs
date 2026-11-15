@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using StajEvrakSistemi.Data;
 using StajEvrakSistemi.Models;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using System;
 
 namespace StajEvrakSistemi.Controllers;
 
@@ -52,7 +55,8 @@ public class AdminController : Controller
         
         if (okuyucu.Read())
         {
-            var basvuru = new StajBasvurusu {
+            var basvuru = new StajBasvurusu
+            {
                 Id = okuyucu.GetInt32(0),
                 OgrenciNo = okuyucu.GetString(1),
                 Statu = okuyucu.GetString(2)
@@ -126,18 +130,45 @@ public class AdminController : Controller
             using var baglanti = VeritabaniServisi.BaglantiGetir();
             baglanti.Open();
             
-            // Eğer yoksa test verileri için arka planda otomatik tablo oluşturur
+            // Madde 4.3'teki tüm 12 sütunu içeren tablo yapısı
             var tabloKomut = new SqliteCommand(@"
                 CREATE TABLE IF NOT EXISTS TestVeriSeti (
                     OgrenciNo TEXT PRIMARY KEY,
                     AdSoyad TEXT,
                     TcKimlik TEXT,
-                    DogumTarihi TEXT
+                    Uyruk TEXT,
+                    DogumTarihi TEXT,
+                    IkametgahAdresi TEXT,
+                    Bolum TEXT,
+                    TeslimYili TEXT,
+                    OncekiStajGunSayisi TEXT,
+                    Eposta TEXT,
+                    TelefonNo TEXT,
+                    SaglikYardimi TEXT
                 )", baglanti);
             tabloKomut.ExecuteNonQuery();
 
-            // CSV'nin ilk satırını (Öğrenci No, Ad Soyad, TC gibi başlıkları) atla
-            await stream.ReadLineAsync();
+            // EĞER TABLO ESKİDEN DAHA AZ SÜTUNLA OLUŞMUŞSA EKSİK SÜTUNLARI OTOMATİK EKLE:
+            string[] tumSutunlar = {
+                "Uyruk", "DogumTarihi", "IkametgahAdresi", "Bolum", 
+                "TeslimYili", "OncekiStajGunSayisi", "Eposta", "TelefonNo", "SaglikYardimi"
+            };
+
+            foreach (var sutun in tumSutunlar)
+            {
+                try
+                {
+                    using var sutunKomut = new SqliteCommand($"ALTER TABLE TestVeriSeti ADD COLUMN {sutun} TEXT;", baglanti);
+                    sutunKomut.ExecuteNonQuery();
+                }
+                catch { }
+            }
+
+           // Yeni CSV yüklenmeden önce eski CSV verilerinin tamamını temizle:
+new SqliteCommand("DELETE FROM TestVeriSeti;", baglanti).ExecuteNonQuery();
+
+// CSV'nin ilk satırını (başlıkları) atla
+await stream.ReadLineAsync();
 
             while (!stream.EndOfStream)
             {
@@ -145,17 +176,66 @@ public class AdminController : Controller
                 if (string.IsNullOrWhiteSpace(satir)) continue;
 
                 var sutunlar = satir.Split(','); // CSV dosyaları verileri virgülle ayırır
-                if (sutunlar.Length >= 3)
+
+                // 1. Durum: Madde 4.3'teki 12 sütunlu tam CSV (kullanici_veri_seti_4_3_duzeltilmis.csv)
+                if (sutunlar.Length >= 12)
                 {
-                    // Satırdaki verileri veritabanına kaydet
                     var ekleKomut = new SqliteCommand(@"
-                        INSERT OR REPLACE INTO TestVeriSeti (OgrenciNo, AdSoyad, TcKimlik, DogumTarihi) 
-                        VALUES (@no, @ad, @tc, @dogum)", baglanti);
+                        INSERT OR REPLACE INTO TestVeriSeti (
+                            AdSoyad, TcKimlik, Uyruk, OgrenciNo, DogumTarihi, 
+                            IkametgahAdresi, Bolum, TeslimYili, OncekiStajGunSayisi, 
+                            Eposta, TelefonNo, SaglikYardimi
+                        ) VALUES (
+                            @ad, @tc, @uyruk, @no, @dogum, 
+                            @adres, @bolum, @yil, @gun, 
+                            @eposta, @tel, @saglik
+                        )", baglanti);
+
+                    ekleKomut.Parameters.AddWithValue("@ad", sutunlar[0].Trim());
+                    ekleKomut.Parameters.AddWithValue("@tc", sutunlar[1].Trim());
+                    ekleKomut.Parameters.AddWithValue("@uyruk", sutunlar[2].Trim());
+                    ekleKomut.Parameters.AddWithValue("@no", sutunlar[3].Trim());
+                    ekleKomut.Parameters.AddWithValue("@dogum", sutunlar[4].Trim());
+                    ekleKomut.Parameters.AddWithValue("@adres", sutunlar[5].Trim());
+                    ekleKomut.Parameters.AddWithValue("@bolum", sutunlar[6].Trim());
+                    ekleKomut.Parameters.AddWithValue("@yil", sutunlar[7].Trim());
+                    ekleKomut.Parameters.AddWithValue("@gun", sutunlar[8].Trim());
+                    ekleKomut.Parameters.AddWithValue("@eposta", sutunlar[9].Trim());
+                    ekleKomut.Parameters.AddWithValue("@tel", sutunlar[10].Trim());
+                    ekleKomut.Parameters.AddWithValue("@saglik", sutunlar[11].Trim());
+
+                    ekleKomut.ExecuteNonQuery();
+                    satirSayisi++;
+                }
+                // 2. Durum: 4 veya 5 sütunlu kısa CSV dosyalarıyla da uyumlu çalışır
+                else if (sutunlar.Length >= 3)
+                {
+                    string ogrenciNo = sutunlar[0].Trim();
+                    string adSoyad = sutunlar[1].Trim();
+                    string tcKimlik = sutunlar[2].Trim();
+                    string uyruk = "T.C.";
+                    string dogumTarihi = "";
+
+                    if (sutunlar.Length >= 5)
+                    {
+                        uyruk = sutunlar[3].Trim();
+                        dogumTarihi = sutunlar[4].Trim();
+                    }
+                    else if (sutunlar.Length == 4)
+                    {
+                        dogumTarihi = sutunlar[3].Trim();
+                        uyruk = tcKimlik.StartsWith("99") ? "Yabancı" : "T.C.";
+                    }
+
+                    var ekleKomut = new SqliteCommand(@"
+                        INSERT OR REPLACE INTO TestVeriSeti (OgrenciNo, AdSoyad, TcKimlik, Uyruk, DogumTarihi) 
+                        VALUES (@no, @ad, @tc, @uyruk, @dogum)", baglanti);
                     
-                    ekleKomut.Parameters.AddWithValue("@no", sutunlar[0].Trim());
-                    ekleKomut.Parameters.AddWithValue("@ad", sutunlar[1].Trim());
-                    ekleKomut.Parameters.AddWithValue("@tc", sutunlar[2].Trim());
-                    ekleKomut.Parameters.AddWithValue("@dogum", sutunlar.Length > 3 ? sutunlar[3].Trim() : "");
+                    ekleKomut.Parameters.AddWithValue("@no", ogrenciNo);
+                    ekleKomut.Parameters.AddWithValue("@ad", adSoyad);
+                    ekleKomut.Parameters.AddWithValue("@tc", tcKimlik);
+                    ekleKomut.Parameters.AddWithValue("@uyruk", uyruk);
+                    ekleKomut.Parameters.AddWithValue("@dogum", dogumTarihi);
                     
                     ekleKomut.ExecuteNonQuery();
                     satirSayisi++;
@@ -219,4 +299,4 @@ public class AdminController : Controller
         // Dosyayı doğru formatta tarayıcıya gönder
         return PhysicalFile(tamDosyaYolu, icerikTipi);
     }
-}
+} 
