@@ -40,12 +40,15 @@ public abstract class Kullanici : TemelKayit
 
 public class Ogrenci : Kullanici
 {
+    public string OgrenciNo { get; set; } = string.Empty;
+    public string Bolum { get; set; } = string.Empty;
     public Ogrenci() { Rol = "Ogrenci"; }
     public override string AnaSayfaGetir() => "/Ogrenci/Index";
 }
 
 public class Admin : Kullanici
 {
+    public string YetkiSeviyesi { get; set; } = string.Empty;
     public Admin() { Rol = "Admin"; }
     public override string AnaSayfaGetir() => "/Admin/Index";
 }
